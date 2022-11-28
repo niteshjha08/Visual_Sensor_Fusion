@@ -67,7 +67,6 @@ class YOLOv4():
                 (x, y) = (boxes[i][0], boxes[i][1])
                 (w, h) = (boxes[i][2], boxes[i][3])
                 bbox = [x, y, w, h]
-                print(bbox)
                 # draw a bounding box rectangle and label on the image
                 if True:
                     color = self.cmap[int(255.0 / (class_id + 1)), :]
@@ -81,4 +80,4 @@ class YOLOv4():
                 detections.append([class_id, bbox, conf])
 
 
-        return image
+        return image, np.array(detections)
