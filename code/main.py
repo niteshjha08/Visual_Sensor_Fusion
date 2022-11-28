@@ -1,11 +1,12 @@
 #!/usr/bin/python3
 import numpy as np
 from Lidar2Camera import LiDAR2Camera
+from yolov4 import YOLOv4
 import glob
 import cv2
 import open3d as o3d
 
-def main():
+def visualize_image_and_pcd():
     image_files = sorted(glob.glob("./../data/img/*.png"))
     point_files = sorted(glob.glob("./../data/velodyne/*.pcd"))
     label_files = sorted(glob.glob("./../data/label/*.txt"))
@@ -30,5 +31,21 @@ def main():
     cv2.waitKey(0)
     
 
+def test_detection():
+    image_files = sorted(glob.glob("./../data/img/*.png"))
+    names_file = "./../data/yolo/coco.names"
+    weights_file = "./../data/yolo/yolov4.weights"
+    config_file = "./../data/yolo/yolov4.cfg"
+
+
+    index = 0
+    image = cv2.imread(image_files[0])
+    detector = YOLOv4()
+    detector.load_model(weights_file,config_file,names_file)
+    result = detector.detect(image.copy())
+    cv2.imshow('res',result)
+    cv2.waitKey(0)
+
+
 if __name__ == "__main__":
-    main()
+    test_detection()
