@@ -15,7 +15,6 @@ def rectContains(rect, pt, w, h, shrink_factor = 0):
     xmax = cx + width * 0.5 * (1 - shrink_factor)
     ymax = cy + height * 0.5 * (1 - shrink_factor)
 
-    # print("xmin: ", xmin, "xmax: ",xmax,"shrink: ", shrink_factor)
     return pt[0] > xmin and pt[0] < xmax and pt[1] > ymin and pt[1] < ymax
 
 def filter_outliers(distances, inliers_sigma=1):

@@ -18,9 +18,10 @@ def lidar_camera_fusion(pts_lidar_3d, pts_cam_2d, bboxes, img):
             img,(int(np.round(pts_cam_2d[i, 0])), int(np.round(pts_cam_2d[i, 1]))),2,
             color=tuple(color),
             thickness=-1)
-      inlier_distances = u.filter_outliers(distances)
-      best_distance = u.get_best_distance(inlier_distances, "closest")
-      cv2.putText(img, '{0:.2f} m'.format(best_distance),(int(box[0]*img.shape[1]), int(box[1]*img.shape[0])), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255,0,0),3,cv2.LINE_AA)
+      if len(distances)>2:
+        inlier_distances = u.filter_outliers(distances)
+        best_distance = u.get_best_distance(inlier_distances, "closest")
+        cv2.putText(img, '{0:.2f} m'.format(best_distance),(int(box[0]), int(box[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,255),1,cv2.LINE_AA)
     return img, inlier_distances
 
 def early_fusion_pipeline(image, point_cloud, lidar2cam, detector):

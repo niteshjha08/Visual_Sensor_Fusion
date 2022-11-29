@@ -2,50 +2,47 @@
 import numpy as np
 from Lidar2Camera import LiDAR2Camera
 from yolov4 import YOLOv4
+from fusion import early_fusion_pipeline
 import glob
 import cv2
 import open3d as o3d
+import config as cfg
 
-def visualize_image_and_pcd():
-    image_files = sorted(glob.glob("./../data/img/*.png"))
-    point_files = sorted(glob.glob("./../data/velodyne/*.pcd"))
-    label_files = sorted(glob.glob("./../data/label/*.txt"))
-    calib_files = sorted(glob.glob("./../data/calib/*.txt"))
 
-    index = 0
-    lidar2cam = LiDAR2Camera(calib_files[index])
-    image = cv2.imread(image_files[index])
+def process_video_early_fusion(data_path, output_path, write_output = False):
 
-    pcd_file = point_files[index]
-    # cv2.imshow('img',image)
-    # cv2.waitKey(0)
+    images_path = sorted(glob.glob(data_path + "images/*.png"))
+    point_files = sorted(glob.glob(data_path + "points/*.pcd"))
+    calib_files = sorted(glob.glob(cfg.calib_path))
 
-    pcd = o3d.io.read_point_cloud(pcd_file)
-    points = np.array(pcd.points)
-    # o3d.visualization.draw_geometries([pcd])
-    cv2.imshow('image_before',image)
+    lidar2cam = LiDAR2Camera(calib_files[0])
 
-    result = lidar2cam.show_lidar_on_image(points, image.copy())
-    cv2.imshow('result',result)
-    cv2.imshow('image',image)
-    cv2.waitKey(0)
+    image_dims = cv2.imread(images_path[0]).shape[:2]
+    writer = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'DIVX'), 20, (image_dims[1], image_dims[0]))
     
+    for i in range(len(images_path)):
+        image = cv2.imread(images_path[i])
+        pcd_file = point_files[i]
 
-def test_detection():
-    image_files = sorted(glob.glob("./../data/img/*.png"))
-    names_file = "./../data/yolo/coco.names"
-    weights_file = "./../data/yolo/yolov4.weights"
-    config_file = "./../data/yolo/yolov4.cfg"
+        pcd = o3d.io.read_point_cloud(pcd_file)
+        points = np.array(pcd.points)
 
+        detector = YOLOv4()
+        detector.load_model(cfg.weights_file, cfg.config_file, cfg.names_file)
 
-    index = 0
-    image = cv2.imread(image_files[0])
-    detector = YOLOv4()
-    detector.load_model(weights_file,config_file,names_file)
-    result = detector.detect(image.copy())
-    cv2.imshow('res',result)
-    cv2.waitKey(0)
+        result = early_fusion_pipeline(image, points, lidar2cam, detector)
+        cv2.imshow('result',result)
+        cv2.waitKey(1)
 
+        if write_output: 
+            writer.write(result)
+
+    writer.release()
+    cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    test_detection()
+
+    data_path = "./../data/video2/"
+    output_path = "./../data/output/output7.avi"
+    write_output = True
+    process_video_early_fusion(data_path, output_path, write_output)
